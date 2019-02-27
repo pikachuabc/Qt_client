@@ -10,13 +10,14 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
 import paho.mqtt.client as mqtt
 import threading
+import thread
 
 
 class Ui_MainWindow(object):
-    Qos_number = 0
-    IP_number = " "
-    topic_content = " "
-    display = " "
+    Qos_number = 0      #Qos质量
+    IP_number = " "     #连接服务器的IP地址
+    topic_content = " " #订阅主题名称
+    display = " "       #返回内容
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(632, 409)
@@ -52,7 +53,9 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralWidget)
 
         self.retranslateUi(MainWindow)
+        '''逻辑功能'''
         self.subscribe.clicked.connect(self.subscribe_submit)
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -64,7 +67,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Qos"))
         self.subscribe.setText(_translate("MainWindow", "subscribe"))
 
-
+    '''按下subscribe后执行动作'''
     def subscribe_submit(self):
         self.receive_box.clear()
         self.Qos_number = self.QoS.text()
@@ -73,30 +76,9 @@ class Ui_MainWindow(object):
         print(self.Qos_number)
         print(self.IP_number)
         print(self.topic_content)
-        t1 = threading.Thread(target=self.connect)
-        t1.setDaemon(True)
-        t1.start()
-        self.timer = QTimer()     #这里需要self，否则只执行一次
-        self.timer.start(1000)
-        self.timer.timeout.connect(self.refresh)
+        self.thread = thread.RunThread(IP_number=self.IP_number,topic_content=self.topic_content)
+        self.thread.signal.connect(self.refresh)
+        self.thread.start()
 
-
-    def connect(self):
-        client = mqtt.Client()
-        client.on_connect = self.on_connect
-        client.on_message = self.on_message
-        client.connect(self.IP_number, 1883, 60)
-        client.loop_forever()
-
-    def on_connect(self,client, userdata, flags, rc):
-        print("Connected with result code " + str(rc))
-        #client.subscribe("$SYS/#")
-        client.subscribe(self.topic_content)
-
-
-    def on_message(self,client, userdata, msg):
-        print(msg.topic + ":" + msg.payload.decode())
-        self.display = msg.topic + ":" + msg.payload.decode()
-
-    def refresh(self):
-        self.receive_box.append(self.display)
+    def refresh(self,msg):
+        self.receive_box.append(msg)
