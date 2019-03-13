@@ -17,7 +17,7 @@ import thread
 """
 class Ui_MainWindow(object):
 
-    ClientThread = None       #MQTT客户端线程
+  #  ClientThread = None       #MQTT客户端线程
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -101,20 +101,30 @@ class Ui_MainWindow(object):
 
         self.server_IP.setText("120.78.172.153")
         self.topic.setText("$SYS/#")
+        self.QoS.setText("0")
 
     '''按下subscribe后执行动作'''
     def NewClient(self):
+        if self.QosCheck():
+            pass
+        else:
+            return
         try:
             self.ClientThread.client.unsubscribe(self.topic.text()) #如果用户重复点击订阅的话先取消之前的订阅并订阅新主题
             self.receive_box.clear()
-            self.ClientThread.client.subscribe(self.topic.text())
-            self.receive_box.append("订阅主题：{}".format(self.topic.text()))
+            self.ClientThread.client.subscribe(topic=self.topic.text(),qos = int(self.QoS.text()))
+            self.receive_box.append("订阅主题{0},订阅质量为Qos{1}".format(self.topic.text(),self.QoS.text()))
             self.receive_box.repaint()
         except:
             self.receive_box.clear()
-            self.ClientThread = thread.Client_RunThread(IP_number=self.server_IP.text(),topic_content=self.topic.text(),User_Name=self.UserName.text())
+            self.ClientThread = thread.Client_RunThread(IP_number=self.server_IP.text(),topic_content=self.topic.text(),User_Name=self.UserName.text(),Qos_number=self.QoS.text())
             self.ClientThread.signal.connect(self.Refresh)    #将子线程的信号连接到主线程的刷新函数上
             self.ClientThread.start()
+
+        self.UserName.setEnabled(False)     #阻止用户再次修改内容
+        self.QoS.setEnabled(False)
+        self.topic.setEnabled(False)
+        self.server_IP.setEnabled(False)
 
     def Unsubscribe(self):
         try:
@@ -125,10 +135,31 @@ class Ui_MainWindow(object):
             self.receive_box.append("当前未订阅任何主题")
             self.receive_box.repaint()
 
+        self.UserName.setEnabled(True)
+        self.QoS.setEnabled(True)
+        self.topic.setEnabled(True)
+        self.server_IP.setEnabled(True)
+
+    """
+    用于将接收到的消息显示于窗体中
+    """
     def Refresh(self,msg):
         self.receive_box.append(msg)    #将收到的消息显示在接受框中
 
+    """
+    清屏
+    """
     def Clear(self):
         self.receive_box.clear()
         self.receive_box.repaint()
-        
+
+    """
+    Qos参数检测
+    """
+    def QosCheck(self):
+        if int(self.QoS.text())==0 or int(self.QoS.text())==1 or int(self.QoS.text())==2:
+            return True
+        else:
+            self.receive_box.append("Qos等级为0-2！")
+            self.receive_box.repaint()
+            return False

@@ -4,7 +4,7 @@ import time
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
-    client.subscribe("test")
+    client.subscribe("test",0)
 
 
 
@@ -24,6 +24,6 @@ client.user_data_set("nihao")
 client.connect("120.78.172.153")
 client.loop_start()
 while True:
-    client.publish("test",i)
+    client.publish("test",i,qos=0)
     time.sleep(2)
     i+=1
