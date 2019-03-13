@@ -21,6 +21,7 @@ class Ui_MainWindow(object):
     topic_content = " " #订阅主题名称
     display = " "       #返回内容
     ClientThread = None       #MQTT客户端线程
+    client = None
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
