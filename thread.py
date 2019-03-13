@@ -11,12 +11,14 @@ class Client_RunThread(QThread):
     Qos_number = 0      #Qos质量
     IP_number = " "     #连接服务器的IP地址
     topic_content = " " #订阅主题名称
+    User_Name = " "     #客户端名称
     client = mqtt.Client()  #客户端实例
 
-    def __init__(self,IP_number,topic_content):
+    def __init__(self,IP_number,topic_content,User_Name):
         super(Client_RunThread,self).__init__()
         self.IP_number = IP_number
         self.topic_content = topic_content
+        self.User_Name = User_Name
 
 
     '''override原run函数'''
