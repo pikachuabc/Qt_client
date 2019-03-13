@@ -153,6 +153,7 @@ class Ui_MainWindow(object):
         self.receive_box.clear()
         self.receive_box.repaint()
 
+
     """
     Qos参数检测
     """
