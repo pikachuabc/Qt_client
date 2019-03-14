@@ -10,7 +10,7 @@ from PyQt5 import QtCore, QtWidgets
 from interface import thread
 import base64
 import time
-
+from PyQt5.QtGui import QPalette, QBrush, QPixmap
 
 """
 窗体类
@@ -112,14 +112,10 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
 
-       # pix = QPixmap("picture/logo.jpg")
-       # pix = QP
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.subscribe_box.setTitle(_translate("MainWindow", "Client Interface"))
-        self.label_0.setText(_translate("MainWinow", "暂无图片"))   #干什么的？
-        # self.label_0.setPixmap(pix)
-        # self.label_0.setScaledContents(True)
+        self.label_0.setText(_translate("MainWinow", "暂无图片"))   #_translate干什么的？
         self.label_1.setText(_translate("MainWindow", "IP Adress"))
         self.label_2.setText(_translate("MainWindow", "Sub Topic"))
         self.label_3.setText(_translate("MainWindow", "Qos"))
@@ -179,11 +175,17 @@ class Ui_MainWindow(object):
     存储图片并显示
     """
     def showPicture(self,msg):
-        pix = QPixmap("picture/logo.jpg")
         img_data = base64.b64decode(msg)
-        file = open("{}.jpg".format(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time()))),"wb")
+        path = "picture_received/{}.jpg".format(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
+        file = open(path,"wb")
         file.write(img_data)
         file.close()
+        pix = QPixmap(path)
+        self.label_0.setPixmap(pix)
+        self.label_0.setScaledContents(True)
+        self.receive_box.clear()
+        self.receive_box.append(path)
+        self.receive_box.repaint()      #文本框显示图片信息
 
     """
     清屏
