@@ -6,29 +6,34 @@
 #
 # WARNING! All changes made in this file will be lost!
 from PyQt5.QtCore import *
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QTimer
-import paho.mqtt.client as mqtt
-import threading
-import thread
+from PyQt5 import QtCore, QtWidgets
+from interface import thread
+import base64
+import time
+
 
 """
 窗体类
 """
 class Ui_MainWindow(object):
 
+
   #  ClientThread = None       #MQTT客户端线程
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(632, 409)
+        MainWindow.resize(932, 409)
         self.centralWidget = QtWidgets.QWidget(MainWindow)
         #创建容器
         self.centralWidget.setObjectName("centralWidget")
 
         self.subscribe_box = QtWidgets.QGroupBox(self.centralWidget)
-        self.subscribe_box.setGeometry(QtCore.QRect(50, 50, 531, 301))
+        self.subscribe_box.setGeometry(QtCore.QRect(50, 50, 831, 301))
         self.subscribe_box.setObjectName("subscribe_box")
+
+        """
+        QlineEdit输入框
+        """
 
         self.server_IP = QtWidgets.QLineEdit(self.subscribe_box)
         self.server_IP.setGeometry(QtCore.QRect(100, 50, 113, 21))
@@ -46,9 +51,18 @@ class Ui_MainWindow(object):
         self.UserName.setGeometry(QtCore.QRect(100, 140, 113, 21))
         self.UserName.setObjectName("UserName")
 
+        """
+        QLabel标签
+        """
+
+        self.label_0 = QtWidgets.QLabel(self.subscribe_box)
+        self.label_0.setGeometry(QtCore.QRect(550, 40, 241, 241))
+        self.label_0.setObjectName("label_0")
+        self.label_0.setAlignment(Qt.AlignCenter) #居中显示
+
         self.label_1 = QtWidgets.QLabel(self.subscribe_box)
         self.label_1.setGeometry(QtCore.QRect(20, 50, 81, 16))
-        self.label_1.setObjectName("label")
+        self.label_1.setObjectName("label_1")
 
         self.label_2 = QtWidgets.QLabel(self.subscribe_box)
         self.label_2.setGeometry(QtCore.QRect(20, 80, 60, 16))
@@ -62,6 +76,10 @@ class Ui_MainWindow(object):
         self.label_4.setGeometry(QtCore.QRect(20, 140, 81, 16))
         self.label_4.setObjectName("label_4")
 
+        """
+        点击按钮
+        """
+
         self.subscribe = QtWidgets.QPushButton(self.subscribe_box)
         self.subscribe.setGeometry(QtCore.QRect(10, 190, 101, 32))
         self.subscribe.setObjectName("subscribe")
@@ -74,12 +92,17 @@ class Ui_MainWindow(object):
         self.clear.setGeometry(QtCore.QRect(10, 220, 101, 32))
         self.clear.setObjectName("clear")
 
+        """
+        接受框
+        """
+
         self.receive_box = QtWidgets.QTextBrowser(self.subscribe_box)
         self.receive_box.setGeometry(QtCore.QRect(270, 40, 241, 241))
         self.receive_box.setObjectName("receive_box")
         MainWindow.setCentralWidget(self.centralWidget)
 
         self.retranslateUi(MainWindow)
+
         '''逻辑功能'''
         self.subscribe.clicked.connect(self.NewClient)
         self.unsubscribe.clicked.connect(self.Unsubscribe)
@@ -88,9 +111,15 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
+
+       # pix = QPixmap("picture/logo.jpg")
+       # pix = QP
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.subscribe_box.setTitle(_translate("MainWindow", "Client Interface"))
+        self.label_0.setText(_translate("MainWinow", "暂无图片"))   #干什么的？
+        # self.label_0.setPixmap(pix)
+        # self.label_0.setScaledContents(True)
         self.label_1.setText(_translate("MainWindow", "IP Adress"))
         self.label_2.setText(_translate("MainWindow", "Sub Topic"))
         self.label_3.setText(_translate("MainWindow", "Qos"))
@@ -117,8 +146,9 @@ class Ui_MainWindow(object):
             self.receive_box.repaint()
         except:
             self.receive_box.clear()
-            self.ClientThread = thread.Client_RunThread(IP_number=self.server_IP.text(),topic_content=self.topic.text(),User_Name=self.UserName.text(),Qos_number=self.QoS.text())
+            self.ClientThread = thread.Client_RunThread(IP_number=self.server_IP.text(), topic_content=self.topic.text(), User_Name=self.UserName.text(), Qos_number=self.QoS.text())
             self.ClientThread.signal.connect(self.Refresh)    #将子线程的信号连接到主线程的刷新函数上
+            self.ClientThread.signal1.connect(self.showPicture) #子线程收到图片信息后在主线程显示
             self.ClientThread.start()
 
         self.UserName.setEnabled(False)     #阻止用户再次修改内容
@@ -145,6 +175,15 @@ class Ui_MainWindow(object):
     """
     def Refresh(self,msg):
         self.receive_box.append(msg)    #将收到的消息显示在接受框中
+    """
+    存储图片并显示
+    """
+    def showPicture(self,msg):
+        pix = QPixmap("picture/logo.jpg")
+        img_data = base64.b64decode(msg)
+        file = open("{}.jpg".format(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time()))),"wb")
+        file.write(img_data)
+        file.close()
 
     """
     清屏
@@ -164,3 +203,4 @@ class Ui_MainWindow(object):
             self.receive_box.append("Qos等级为0-2！")
             self.receive_box.repaint()
             return False
+

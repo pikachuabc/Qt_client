@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 class Client_RunThread(QThread):
 
     signal = pyqtSignal(str) #slot信号
+    signal1 = pyqtSignal(str)
     Qos_number = 0      #Qos质量
     IP_number = " "     #连接服务器的IP地址
     topic_content = " " #订阅主题名称
@@ -43,5 +44,8 @@ class Client_RunThread(QThread):
 
     '''接受消息的回调函数'''
     def on_message(self,client, userdata, msg):
-        #print(msg.topic + ":" + msg.payload.decode())
-        self.signal.emit(msg.topic + ":" + msg.payload.decode())
+        print(msg.topic)
+        if msg.topic =="picture":
+            self.signal1.emit(msg.payload.decode())
+        else:
+            self.signal.emit(msg.topic + ":" + msg.payload.decode())
