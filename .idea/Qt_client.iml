@@ -6,6 +6,8 @@
       <excludeFolder url="file://$MODULE_DIR$/picture" />
       <excludeFolder url="file://$MODULE_DIR$/picture_received" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/voice" />
+      <excludeFolder url="file://$MODULE_DIR$/voice_received" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

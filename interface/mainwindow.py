@@ -16,10 +16,6 @@ from PyQt5.QtGui import QPalette, QBrush, QPixmap
 窗体类
 """
 class Ui_MainWindow(object):
-
-
-  #  ClientThread = None       #MQTT客户端线程
-
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(932, 409)
@@ -143,8 +139,11 @@ class Ui_MainWindow(object):
         except:
             self.receive_box.clear()
             self.ClientThread = thread.Client_RunThread(IP_number=self.server_IP.text(), topic_content=self.topic.text(), User_Name=self.UserName.text(), Qos_number=self.QoS.text())
+
             self.ClientThread.signal.connect(self.Refresh)    #将子线程的信号连接到主线程的刷新函数上
-            self.ClientThread.signal1.connect(self.showPicture) #子线程收到图片信息后在主线程显示
+            self.ClientThread.signal1.connect(self.showPicture) #子线程收到图片信息后在主线程存储显示
+            self.ClientThread.signal2.connect(self.saveVoice) #将子线程收到的音频信息存储
+
             self.ClientThread.start()
 
         self.UserName.setEnabled(False)     #阻止用户再次修改内容
@@ -175,17 +174,29 @@ class Ui_MainWindow(object):
     存储图片并显示
     """
     def showPicture(self,msg):
+        print("处理图片")
         img_data = base64.b64decode(msg)
-        path = "picture_received/{}.jpg".format(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
-        file = open(path,"wb")
-        file.write(img_data)
-        file.close()
+        path = "/Users/jiafan/PycharmProjects/Qt_client/picture_received/{}.jpg".format(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
+        with open(path,"wb") as file:
+            file.write(img_data)
         pix = QPixmap(path)
         self.label_0.setPixmap(pix)
         self.label_0.setScaledContents(True)
         self.receive_box.clear()
         self.receive_box.append(path)
         self.receive_box.repaint()      #文本框显示图片信息
+
+    """
+    存储音频文件
+    """
+    def saveVoice(self,msg):
+        print("处理音频")
+        voi_data = base64.b64decode(msg)
+        path = "/Users/jiafan/PycharmProjects/Qt_client/voice_received/{}.mp3".format(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
+        with open(path,"wb") as file:
+            file.write(voi_data)
+
+
 
     """
     清屏
