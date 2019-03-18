@@ -1,7 +1,12 @@
 from PyQt5.QtCore import *
 import time
 import paho.mqtt.client as mqtt
+import mysql.connector
 
+config = {"user":"root",
+          "password":"Jff4090171",
+          "host":"127.0.0.1",
+          "database":"hello"}  #数据连接配置
 
 '''
 继承Qthread，实现在子线程中修改主线程UI，传入参数为服务器IP地址，订阅主题
@@ -16,6 +21,11 @@ class Client_RunThread(QThread):
     topic_content = " " #订阅主题名称
     User_Name = " "     #客户端名称
     client = mqtt.Client()  #客户端实例
+    cnx = None      #数据库连接实例
+    add_value = ("insert into vibrateSensor"
+                 "(time,value)"
+                 "values (%s,%s)")   #添加数据形式
+
 
     def __init__(self,IP_number,topic_content,User_Name,Qos_number):
         super(Client_RunThread,self).__init__()
@@ -26,8 +36,7 @@ class Client_RunThread(QThread):
 
     '''override原run函数'''
     def run(self):
-        self.connect()  #创建mqtt线程
-
+        self.connect()  # 创建mqtt线程
     '''创建pahomqtt实例，并尝试连接'''
     def connect(self):
         self.client.on_connect = self.on_connect
@@ -49,5 +58,18 @@ class Client_RunThread(QThread):
             self.signal1.emit(msg.payload.decode())
         elif msg.topic =="voice":
             self.signal2.emit(msg.payload.decode())
+        elif msg.topic =="sensor":
+            try:
+                self.cnx = mysql.connector.connect(**config)  # 数据库连接实例
+                self.cnx.connect(**config)
+                self.curs = self.cnx.cursor()
+                data_value = (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),msg.payload.decode())
+                self.curs.execute(self.add_value,data_value)
+                self.cnx.commit()
+                self.curs.close()
+                self.cnx.close()
+            except:
+                self.signal.emit("数据库连接失败，以下数据将不会被存入数据库")
+            self.signal.emit(msg.topic + ":" + msg.payload.decode())
         else:
             self.signal.emit(msg.topic + ":" + msg.payload.decode())

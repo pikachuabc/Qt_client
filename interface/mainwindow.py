@@ -150,6 +150,7 @@ class Ui_MainWindow(object):
         self.QoS.setEnabled(False)
         self.topic.setEnabled(False)
         self.server_IP.setEnabled(False)
+        self.centralWidget.repaint()
 
     def Unsubscribe(self):
         try:
@@ -164,6 +165,7 @@ class Ui_MainWindow(object):
         self.QoS.setEnabled(True)
         self.topic.setEnabled(True)
         self.server_IP.setEnabled(True)
+        self.centralWidget.repaint()
 
     """
     用于将接收到的消息显示于窗体中
@@ -195,7 +197,6 @@ class Ui_MainWindow(object):
         path = "/Users/jiafan/PycharmProjects/Qt_client/voice_received/{}.mp3".format(time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time())))
         with open(path,"wb") as file:
             file.write(voi_data)
-
 
 
     """
