@@ -131,26 +131,29 @@ class Ui_MainWindow(object):
         else:
             return
         try:
-            self.ClientThread.client.unsubscribe(self.topic.text()) #如果用户重复点击订阅的话先取消之前的订阅并订阅新主题
-            self.receive_box.clear()
-            self.ClientThread.client.subscribe(topic=self.topic.text(),qos = int(self.QoS.text()))
-            self.receive_box.append("订阅主题{0},订阅质量为Qos{1}".format(self.topic.text(),self.QoS.text()))
-            self.receive_box.repaint()
+            if self.ClientThread.is_connect == True:
+                self.ClientThread.client.unsubscribe(self.topic.text()) #如果用户重复点击订阅的话先取消之前的订阅并订阅新主题
+                print("subscribe again")
+                self.receive_box.clear()
+                self.ClientThread.client.subscribe(topic=self.topic.text(),qos = int(self.QoS.text()))
+                self.receive_box.append("订阅主题{0},订阅质量为Qos{1}".format(self.topic.text(),self.QoS.text()))
+                self.receive_box.repaint()
         except:
+            print("first subscribe")
             self.receive_box.clear()
             self.ClientThread = thread.Client_RunThread(IP_number=self.server_IP.text(), topic_content=self.topic.text(), User_Name=self.UserName.text(), Qos_number=self.QoS.text())
-
             self.ClientThread.signal.connect(self.Refresh)    #将子线程的信号连接到主线程的刷新函数上
             self.ClientThread.signal1.connect(self.showPicture) #子线程收到图片信息后在主线程存储显示
             self.ClientThread.signal2.connect(self.saveVoice) #将子线程收到的音频信息存储
+            self.ClientThread.err_signal.connect(self.err) #错误检查
 
             self.ClientThread.start()
 
-        self.UserName.setEnabled(False)     #阻止用户再次修改内容
-        self.QoS.setEnabled(False)
-        self.topic.setEnabled(False)
-        self.server_IP.setEnabled(False)
-        self.centralWidget.repaint()
+            self.UserName.setEnabled(False)     #阻止用户再次修改内容
+            self.QoS.setEnabled(False)
+            self.topic.setEnabled(False)
+            self.server_IP.setEnabled(False)
+            self.centralWidget.repaint()
 
     def Unsubscribe(self):
         try:
@@ -218,3 +221,10 @@ class Ui_MainWindow(object):
             self.receive_box.repaint()
             return False
 
+    '''
+    错误提醒
+    '''
+    def err(self,errNumber):
+        if errNumber == 1:
+            self.receive_box.append("网络连接错误")
+            del self.ClientThread
