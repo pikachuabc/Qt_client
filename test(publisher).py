@@ -2,6 +2,7 @@ import paho.mqtt.client as mqtt
 import sqlite3
 import base64
 import time
+import json
 
 pub_topic = "picture"
 HOST = '120.78.172.153'
@@ -30,10 +31,15 @@ if __name__ == '__main__':
     client.on_connect = on_connect
     client.connect(HOST)
     client.loop_start()
+    
+    test = {}
     while True:
-        a = input("输入内容")
         #client.publish("sensor",a)
-        send_img()
+        # try:
+        #     send_img()
+        # except:
+        #     pass
+        client.publish('sensor',)
         #send_Vid()
         # a = input("1：发送图片  2：发送音频 3:文字")
         # if a == 1:

@@ -121,7 +121,8 @@ class Ui_MainWindow(object):
         self.clear.setText(_translate("MainWindow", "clear"))
 
         self.server_IP.setText("120.78.172.153")
-        self.topic.setText("$SYS/#")
+        #self.topic.setText("$SYS/#")
+        self.topic.setText('Area1/floor1/section1')
         self.QoS.setText("0")
 
     '''按下subscribe后执行动作'''
@@ -174,6 +175,7 @@ class Ui_MainWindow(object):
     用于将接收到的消息显示于窗体中
     """
     def Refresh(self,msg):
+        print(msg)
         self.receive_box.append(msg)    #将收到的消息显示在接受框中
     """
     存储图片并显示

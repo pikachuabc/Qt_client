@@ -1,13 +1,14 @@
 from PyQt5.QtCore import *
 import time
 import paho.mqtt.client as mqtt
+import json
 import mysql.connector
 from interface import main
 
 config = {"user":"root",
           "password":"Jff4090171",
           "host":"127.0.0.1",
-          "database":"hello"}  #数据连接配置
+          "database":"IIoT"}  #数据连接配置
 
 '''
 继承Qthread，实现在mqtt子线程中修改主线程UI，传入参数为服务器IP地址，订阅主题
@@ -27,9 +28,9 @@ class Client_RunThread(QThread):
     User_Name = " "     #客户端名称
     client = mqtt.Client()  #客户端实例
     cnx = None      #数据库连接实例
-    add_value = ("insert into vibrateSensor"
-                 "(time,value)"
-                 "values (%s,%s)")   #添加数据形式
+    add_value = ("insert into IIoT.Sensor"
+                 "(time,value,sensorType,sensorID)"
+                 "values (%s,%s,%s,%s)")   #添加数据形式
 
 
     def __init__(self,IP_number,topic_content,User_Name,Qos_number):
@@ -66,23 +67,43 @@ class Client_RunThread(QThread):
 
     '''接受消息的回调函数'''
     def on_message(self,client, userdata, msg):
-        if msg.topic =="picture":
-            self.signal1.emit(msg.payload.decode())
-        elif msg.topic =="voice":
-            self.signal2.emit(msg.payload.decode())
-        elif msg.topic =="sensor":
+        recData = json.loads(msg.payload)
+        if recData['type'] == '0':
             try:
                 self.cnx = mysql.connector.connect(**config)  # 数据库连接实例
                 self.cnx.connect(**config)
                 self.curs = self.cnx.cursor()
-                data_value = (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),msg.payload.decode())
+                data_value = (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),recData['value'],recData['sensorType'],recData['sensorID'])
                 self.curs.execute(self.add_value,data_value)
                 self.cnx.commit()
                 self.curs.close()
                 self.cnx.close()
             except:
                 self.signal.emit("数据库连接失败，以下数据将不会被存入数据库")
-            self.signal.emit(msg.topic + ":" + msg.payload.decode())
+            self.signal.emit(msg.topic+":"+recData['value'].replace("\n",''))
+        elif recData['type'] == '1':
+            self.signal1.emit(recData['picture'])
+        elif recData['type'] == '2':
+            self.signal2.emit(recData['voice'])
         else:
-            self.signal.emit(msg.topic + ":" + msg.payload.decode())
+            self.signal.emit("未知消息格式")
+        # if msg.topic =="picture":
+        #     self.signal1.emit(msg.payload.decode())
+        # elif msg.topic =="voice":
+        #     self.signal2.emit(msg.payload.decode())
+        # elif msg.topic =="sensor":
+        #     try:
+        #         self.cnx = mysql.connector.connect(**config)  # 数据库连接实例
+        #         self.cnx.connect(**config)
+        #         self.curs = self.cnx.cursor()
+        #         data_value = (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),msg.payload.decode())
+        #         self.curs.execute(self.add_value,data_value)
+        #         self.cnx.commit()
+        #         self.curs.close()
+        #         self.cnx.close()
+        #     except:
+        #         self.signal.emit("数据库连接失败，以下数据将不会被存入数据库")
+        #     self.signal.emit(msg.topic + ":" + msg.payload.decode())
+        # else:
+        #     self.signal.emit(msg.topic + ":" + msg.payload.decode())
             #main.ui.signal.emit(msg.topic + ":" + msg.payload.decode())
