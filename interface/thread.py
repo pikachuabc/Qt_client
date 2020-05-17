@@ -6,7 +6,6 @@ import mysql.connector
 from interface import main
 
 config = {"user":"root",
-          "password":"Jff4090171",
           "host":"127.0.0.1",
           "database":"IIoT"}  #数据连接配置
 
